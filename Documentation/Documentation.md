@@ -6,6 +6,9 @@
 - ***Animation_Bridge***(monobehaviour) 
 this lives on the Game Object holding your Animator.  You will need to assign an ***Animation_ParmeterObject*** , as well as any curve controlled float values you want sent back to DOTS.
 
+- ***AnimationTagAuthoring***(monobehaviour) 
+this lives on the Game Object holding your Animator along with the Animation_Bridge.  The CharacterTag string variable here must match
+the CharacterTag variable set in your Animation_Bridge.
 
 - ***Animation_ParameterObject***(scriptable object) 
 is a scriptable object that is created when you use the editor tool generator, or from the create sub menu in Unity. You should not need to interact with this object other than assigning it in the ***Animation_Bridge*** on your character. You must re-generate this object whenever you change parameters in the Unity Animator Controller

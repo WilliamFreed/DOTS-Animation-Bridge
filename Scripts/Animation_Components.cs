@@ -3,6 +3,8 @@ using System;
 using Unity.Entities;
 #endregion
 
+public struct PlayerTag : IComponentData {}
+
 #region Animator Bridge ECS
 
 /// <summary>
@@ -54,7 +56,7 @@ public struct AnimParamBuffer : IBufferElementData
 [Serializable]
 public struct AnimParameterECS
 {
-    public AnimParam Parameter;
+    public int Parameter;
     public FloatValue Float;
     public ByteValue Bool;
     public IntValue Int;
@@ -124,7 +126,6 @@ public struct ByteValue : IAnimParamValue
 
     public void SetValue(float value)
     {
-        ErrorLogging.Log(LogType.Message,"Byte Set Value float");
     }
 
     public void SetValue(bool value)
@@ -134,7 +135,6 @@ public struct ByteValue : IAnimParamValue
 
     public void SetValue(int value)
     {
-        ErrorLogging.Log(LogType.Message,"Byte Set Value Int");
     }
 }
 
@@ -150,12 +150,12 @@ public struct FloatValue : IAnimParamValue
 
     public void SetValue(bool value)
     {
-        ErrorLogging.Log(LogType.Message,"Float Set Value Bool");
+        
     }
 
     public void SetValue(int value)
     {
-        ErrorLogging.Log(LogType.Message,"Float Set Value Int");
+        
     }
 }
 
@@ -166,12 +166,10 @@ public struct IntValue : IAnimParamValue
    
     public void SetValue(float value)
     {
-        ErrorLogging.Log(LogType.Message,"Int Set Value Float");
     }
 
     public void SetValue(bool value)
     {
-        ErrorLogging.Log(LogType.Message,"Int Set Value Bool");
     }
 
     public void SetValue(int value)

@@ -239,7 +239,7 @@ public class Animation_ParameterListGenerator : EditorWindow
             sb.AppendLine("    public void OnCreate(ref SystemState state)");
             sb.AppendLine("    {");
             sb.AppendLine("        state.RequireForUpdate<AnimationBridge>();");
-            sb.AppendLine("         LookupHashmap = new(PlayerAnimsClassLookup.ParamReverseLookupDictionary.Count,Allocator.Persistent);");
+            sb.AppendLine($"         LookupHashmap = new({ParamEnumName}ClassLookup.ParamReverseLookupDictionary.Count,Allocator.Persistent);");
             sb.AppendLine($"        var dictionaryLookup = {ParamEnumName}ClassLookup.ParamReverseLookupDictionary;");
             sb.AppendLine($"        foreach(var a in dictionaryLookup)");
             sb.AppendLine("        {");
@@ -263,8 +263,8 @@ public class Animation_ParameterListGenerator : EditorWindow
             sb.AppendLine("          //{");
             sb.AppendLine("              // STICK INPUT EXAMPLE");
             sb.AppendLine("              //DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);");
-            sb.AppendLine($"              //var leftStickXBuffer = buffer[LookupHashmap[(int){ParamEnumName}.X]];");
-            sb.AppendLine($"              //var leftStickYBuffer = buffer[LookupHashmap[(int){ParamEnumName}.Y]];");
+            sb.AppendLine($"              //var leftStickXBuffer = buffer[LookupHashmap[(int){ParamEnumName}_AnimParam.X]];");
+            sb.AppendLine($"              //var leftStickYBuffer = buffer[LookupHashmap[(int){ParamEnumName}_AnimParam.Y]];");
             sb.AppendLine("              //float2 lStickValue = LEFTSTICKINPUT;");
             sb.AppendLine("              //leftStickXBuffer.Parameter.SetValue(lStickValue.x);");
             sb.AppendLine("              //leftStickYBuffer.Parameter.SetValue(lStickValue.y);");
@@ -272,7 +272,7 @@ public class Animation_ParameterListGenerator : EditorWindow
             sb.AppendLine("              //buffer[LookupHashmap[(int)AnimParam.Y]] = leftStickY;");
             sb.AppendLine();
             sb.AppendLine("              // JUMP EXAMPLE");
-            sb.AppendLine("              //var jumpBuffer = buffer[LookupHashmap[(int){ParamEnumName}.Jump]];");
+            sb.AppendLine("              //var jumpBuffer = buffer[LookupHashmap[(int){ParamEnumName}_AnimParam.Jump]];");
             sb.AppendLine("              //if(JUMPPRESSED)");
             sb.AppendLine("              //{");
             sb.AppendLine("                   // Sets a trigger");
@@ -322,7 +322,7 @@ public class Animation_ParameterListGenerator : EditorWindow
 
         return new()
         {
-            Parameter = (AnimParam)hash,
+            Parameter = hash,
             T = t,
             IsDirty = 0,
             Float = new(),

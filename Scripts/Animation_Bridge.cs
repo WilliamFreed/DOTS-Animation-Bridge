@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using System.Reflection;
+using Unity.Collections;
 
 [RequireComponent(typeof(Animator))]
 public class Animation_Bridge : MonoBehaviour
@@ -14,7 +15,14 @@ public class Animation_Bridge : MonoBehaviour
 
     [Header("Return Curve Values")]
     [Tooltip("Assign a parameter here if its controlled by an animation curve. Value will be relayed to DOTS/ECS")]
-    [SerializeField] private List<AnimParam> ReturnFloats;
+    [SerializeField] private List<string> ReturnFloats;
+
+    [Header("Character Tag")]
+    [Tooltip("Tag for identifying your character type from animation tag")]
+    [SerializeField] private string CharacterTag;
+
+
+    private List<int> _returnFloatHash;
 
     /// <summary>
     /// Players gameobject animator
@@ -54,6 +62,7 @@ public class Animation_Bridge : MonoBehaviour
 
         // start poll routine to look for player entity
         _pollRoutine = StartCoroutine(nameof(PollTillReady));
+        GetReturnFloatHashes();
     }
 
     /// <summary>
@@ -87,10 +96,6 @@ public class Animation_Bridge : MonoBehaviour
         {
             temp.Add(new(){ Parameter = _playerAnimParams.Parameters[i]});
         }
-
-        ErrorLogging.Log(LogType.Message,$"buffer count = {temp.Length}");
-
-        ErrorLogging.Log(LogType.Message,"SetupEntity Done");
     }
 
     /// <summary>
@@ -102,23 +107,44 @@ public class Animation_Bridge : MonoBehaviour
     private IEnumerator PollTillReady()
     {
         // create the entity query 
-        var query = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerTag>());
-        while (query.CalculateEntityCount() != 1){ yield return null; }
-        ErrorLogging.Log(LogType.Message,"Poll Till Ready Done");
-        FindSingleton(query);
+        var query = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<AnimationTag>());
+        while (query.CalculateEntityCount() == 0){ yield return null; }
+        FindEntityFromTag(query);
     }
 
     /// <summary>
     /// assigns the cached entity and then disposes the entity query created in _pollRoutine
     /// </summary>
     /// <param name="query"></param>
-    private void FindSingleton(EntityQuery query)
+    private void FindEntityFromTag(EntityQuery query)
     {
-        _entity = query.GetSingletonEntity();
+        var tagHash = Animator.StringToHash(CharacterTag);
+        var id = gameObject.GetEntityId();
+        var animationEntities = GetAllWith<AnimationTag>();
+        foreach(var e in animationEntities)
+        {
+            var tag = _entityManager.GetComponentData<AnimationTag>(e);
+            if(tag.CharacterTag == tagHash)
+            {
+                if(tag.InstanceID == id)
+                {
+                    _entity = e;
+                    break;
+                }
+            }
+        }
         query.Dispose();
-        ErrorLogging.Log(LogType.Message,"Find Singleton Done");
+        animationEntities.Dispose();
         SetupEntity();
         _pollRoutine = null;
+    }
+
+    public NativeArray<Entity> GetAllWith<T>() where T : unmanaged, IComponentData
+    {
+        var query = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<T>());
+        var entities = query.ToEntityArray(Allocator.Temp);
+        query.Dispose();
+        return entities;
     }
 
 #endregion
@@ -180,33 +206,48 @@ public class Animation_Bridge : MonoBehaviour
                 case 0: // bool value
                     if(param.Parameter.GetValue(out bool boolValue))
                     {
-                        _animator.SetBool((int)param.Parameter.Parameter,boolValue);
+                        _animator.SetBool(param.Parameter.Parameter,boolValue);
                     }
                 break;
                 case 1: // trigger
                     if(param.Parameter.GetValue(out bool triggerValue))
                     {
-                        StartCoroutine(TriggerRoutine((int)param.Parameter.Parameter));
+                        StartCoroutine(TriggerRoutine(param.Parameter.Parameter));
                     }
                 break;
                 case 2: // float value
                     if(param.Parameter.GetValue(out float floatValue))
                     {
-                        _animator.SetFloat((int)param.Parameter.Parameter,floatValue);
+                        _animator.SetFloat(param.Parameter.Parameter,floatValue);
                     }
                 break;
                 case 3: // int value
                     if(param.Parameter.GetValue(out int intValue))
                     {
-                        _animator.SetInteger((int)param.Parameter.Parameter,intValue);
+                        _animator.SetInteger(param.Parameter.Parameter,intValue);
                     }
                 break;
             }
             iterator++;
         }
-        if(ReturnFloats != null && ReturnFloats.Count > 0)
+        if(_returnFloatHash != null && _returnFloatHash.Count > 0)
         {
             SetReturnFloats(buffer);
+        }
+    }
+
+    private void GetReturnFloatHashes()
+    {
+        _returnFloatHash = new();
+        foreach(var p in _animator.parameters)
+        {
+            foreach(var f in ReturnFloats)
+            {
+                if(p.name == f)
+                {
+                    _returnFloatHash.Add(p.nameHash);
+                }
+            }
         }
     }
 
@@ -223,12 +264,11 @@ public class Animation_Bridge : MonoBehaviour
         
         /// for each parameter listed in ReturnFloats list
         /// grab its value from the animator and set it in the bridge
-        foreach(var parameter in ReturnFloats)
+        foreach(var parameter in _returnFloatHash)
         {
 
-            int hash = (int)parameter;
-            float animF = _animator.GetFloat(hash);
-            int lookupHash = lookupDictionary[hash];
+            float animF = _animator.GetFloat(parameter);
+            int lookupHash = lookupDictionary[parameter];
             buffer[lookupHash].Parameter.SetValue(animF);
         }
 

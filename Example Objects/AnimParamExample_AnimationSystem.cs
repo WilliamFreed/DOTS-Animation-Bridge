@@ -8,11 +8,12 @@ using Unity.Mathematics;
 [BurstCompile]
 public partial struct AnimParamExampleAnimationSystem : ISystem
 {
-private NativeHashMap<int,int> LookupHashmap;
+    private ExampleTimer Timer;
+    private NativeHashMap<int,int> LookupHashmap;
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<AnimationBridge>();
-         LookupHashmap = new(PlayerAnimsClassLookup.ParamReverseLookupDictionary.Count,Allocator.Persistent);
+         LookupHashmap = new(AnimParamExampleClassLookup.ParamReverseLookupDictionary.Count,Allocator.Persistent);
         var dictionaryLookup = AnimParamExampleClassLookup.ParamReverseLookupDictionary;
         foreach(var a in dictionaryLookup)
         {
@@ -28,29 +29,33 @@ private NativeHashMap<int,int> LookupHashmap;
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-      //foreach
-      //(
-          //var (animationBridge,entity) in
-          //SystemAPI.Query<RefRW<AnimationBridge>>().WithEntityAccess().WithAll<CUSTOMTAG>())
-          //{
-              // STICK INPUT EXAMPLE
-              //DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);
-              //var leftStickXBuffer = buffer[LookupHashmap[(int)AnimParamExample.X]];
-              //var leftStickYBuffer = buffer[LookupHashmap[(int)AnimParamExample.Y]];
-              //float2 lStickValue = LEFTSTICKINPUT;
-              //leftStickXBuffer.Parameter.SetValue(lStickValue.x);
-              //leftStickYBuffer.Parameter.SetValue(lStickValue.y);
-              //buffer[LookupHashmap[(int)AnimParam.X]] = leftStickX;
-              //buffer[LookupHashmap[(int)AnimParam.Y]] = leftStickY;
+      foreach
+      (
+          var (bridge,tag,entity) in
+          SystemAPI.Query<RefRW<AnimationBridge>,AnimationTag>().WithEntityAccess())
+          {
+              DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);
+              var moveBuffer = buffer[LookupHashmap[(int)AnimParamExample_AnimParam.Move]];
+              Timer.Timer += SystemAPI.Time.DeltaTime;
+              if(Timer.Timer > 4f)
+                {
+                    Timer.Timer = 0;
+                }
 
-              // JUMP EXAMPLE
-              //var jumpBuffer = buffer[LookupHashmap[(int){ParamEnumName}.Jump]];
-              //if(JUMPPRESSED)
-              //{
-                   // Sets a trigger
-                   //jumpBuffer.Parameter.SetValue(true,true);
-              //}
-
-           //}
+                if(Timer.Timer > 2f)
+            {
+                moveBuffer.Parameter.SetValue(1f);
+            }
+            else
+            {
+                moveBuffer.Parameter.SetValue(0f);
+            }
+            buffer[LookupHashmap[(int)AnimParamExample_AnimParam.Move]] = moveBuffer;
+           }
      }
+}
+
+public struct ExampleTimer
+{
+    public float Timer;
 }

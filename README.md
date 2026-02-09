@@ -34,48 +34,48 @@ this script holds the relevant DOTS components and structs for running the syste
 #### Example of a Jump Trigger 
 ##### using a character controller named "Player" (custom generate enum "Player_AnimParam")
 
-    ''' csharp
+```csharp
+foreach
+(
+    var (bridge,entity) in 
+    SystemAPI.Query<RefRW<AnimationBridge>>().WithEntityAccess().WithAll<CUSTOMTAG>())
+    {
+        DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);
 
-        foreach
-        (
-            var (bridge,entity) in 
-            SystemAPI.Query<RefRW<AnimationBridge>>().WithEntityAccess().WithAll<CUSTOMTAG>())
-            {
-                DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);
-
-                if (JUMP INPUT TRIGGERED)
-                {
-                    int jumpIndex = LookupHashmap[(int)Player_AnimParam.Jump];
-                    var jumpBuffer = buffer[jumpIndex];
-                    jumpBuffer.Parameter.SetValue(true, isTrigger: true);
-                    buffer[jumpIndex] = jumpBuffer;
-                }
-            }
-
+        if (JUMP INPUT TRIGGERED)
+        {
+            int jumpIndex = LookupHashmap[(int)Player_AnimParam.Jump];
+            var jumpBuffer = buffer[jumpIndex];
+            jumpBuffer.Parameter.SetValue(true, isTrigger: true);
+            buffer[jumpIndex] = jumpBuffer;
+        }
+    }
+```
          
 ### Example of a float input 
 #### using a character controller named "Ogre" (custom generate enum "Ogre_AnimParam")
 
-    ''' csharp
+```csharp
 
-        foreach
-        (
-            var (bridge,entity) in 
-            SystemAPI.Query<RefRW<AnimationBridge>>().WithEntityAccess().WithAll<CUSTOMTAG>())
-            {
-                DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);
+foreach
+(
+    var (bridge,entity) in 
+    SystemAPI.Query<RefRW<AnimationBridge>>().WithEntityAccess().WithAll<CUSTOMTAG>())
+    {
+        DynamicBuffer<AnimParamBuffer> buffer = SystemAPI.GetBuffer<AnimParamBuffer>(entity);
 
-                int moveXIndex = LookupHashmap[(int)Ogre_AnimParam.MoveX];
-                int moveYIndex = LookupHashmap[(int)Ogre_AnimParam.MoveY];
+        int moveXIndex = LookupHashmap[(int)Ogre_AnimParam.MoveX];
+        int moveYIndex = LookupHashmap[(int)Ogre_AnimParam.MoveY];
 
-                var moveXBuffer = buffer[moveXIndex];
-                var moveYBuffer = buffer[moveYIndex];
+        var moveXBuffer = buffer[moveXIndex];
+        var moveYBuffer = buffer[moveYIndex];
 
-                moveXBuffer.Parameter.SetValue(X FLOAT VALUE);
-                moveYBuffer.Parameter.SetValue(Y FLOAT VALUE);
+        moveXBuffer.Parameter.SetValue(X FLOAT VALUE);
+        moveYBuffer.Parameter.SetValue(Y FLOAT VALUE);
 
-                buffer[moveXIndex] = moveXBuffer;
-                buffer[moveYIndex] = moveYBuffer;
-                
-            }
-      
+        buffer[moveXIndex] = moveXBuffer;
+        buffer[moveYIndex] = moveYBuffer;
+        
+    }
+
+```
